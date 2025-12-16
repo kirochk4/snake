@@ -1,5 +1,5 @@
 import { floor } from "./lib.js";
-import { TYPE_COLOR } from "./engine.js";
+import { TYPE_COLOR, TYPE_FUNCTION } from "./engine.js";
 
 const DIRECTION_UP = "up";
 const DIRECTION_DOWN = "down";
@@ -32,7 +32,7 @@ const directionKeys = new Map([
 
 export default class {
   constructor({ width, height }) {
-    if (width < 6 || height < 6) throw new Error("Game field is too small.");
+    if (width < 6 || height < 1) throw new Error("Game field is too small.");
 
     this.width = width;
     this.height = height;
@@ -119,9 +119,18 @@ export default class {
 
   updateMatrix(matrix, setScore) {
     this.snake.forEach((segment, index) => {
-      const data = { type: TYPE_COLOR };
-      if (index === 0) data.color = "green";
-      else data.color = index % 2 !== 0 ? "darkgreen" : "green";
+      let data;
+      if (index === 0)
+        data = {
+          type: TYPE_FUNCTION,
+          function: this.drawSnakeHeadFunction,
+        };
+      else
+        data = {
+          type: TYPE_COLOR,
+          color: index % 2 === 0 ? "darkgreen" : "green",
+        };
+
       matrix[segment.x][segment.y] = data;
     });
 
@@ -146,5 +155,107 @@ export default class {
         else free.push({ x, y });
 
     return free[floor(Math.random() * free.length)];
+  }
+
+  get drawSnakeHeadFunction() {
+    const direction = this.direction;
+    return (ctx, x, y, width, height) => {
+      ctx.fillStyle = "darkgreen";
+      ctx.fillRect(x, y, width, height);
+
+      const toothX = floor(width / 5);
+      const toothW = floor(width / 6);
+      const toothH = floor(height / 3);
+
+      const mouthH = floor(height / 8);
+
+      const eyeX = floor(width / 8);
+      const eyeY = floor(height / 2);
+      const eyeW = floor(width / 3);
+      const eyeH = floor(height / 5);
+
+      switch (direction) {
+        case DIRECTION_RIGHT:
+          ctx.fillStyle = "white";
+          ctx.fillRect(x + width, y + toothX, -toothH, toothW);
+          ctx.fillRect(
+            x + width,
+            y + height - (toothX + toothW),
+            -toothH,
+            toothW
+          );
+          ctx.fillStyle = "red";
+          ctx.fillRect(
+            x + width,
+            y + toothX + toothW,
+            -mouthH,
+            height - (toothX + toothW) * 2
+          );
+          ctx.fillStyle = "yellow";
+          ctx.fillRect(x + width - eyeY, y + eyeX, -eyeH, eyeW);
+          ctx.fillRect(
+            x + width - eyeY,
+            y + height - (eyeX + eyeW),
+            -eyeH,
+            eyeW
+          );
+          break;
+        case DIRECTION_LEFT:
+          ctx.fillStyle = "white";
+          ctx.fillRect(x, y + toothX, toothH, toothW);
+          ctx.fillRect(x, y + height - (toothX + toothW), toothH, toothW);
+          ctx.fillStyle = "red";
+          ctx.fillRect(
+            x,
+            y + toothX + toothW,
+            mouthH,
+            height - (toothX + toothW) * 2
+          );
+          ctx.fillStyle = "yellow";
+          ctx.fillRect(x + eyeY, y + eyeX, eyeH, eyeW);
+          ctx.fillRect(x + eyeY, y + height - (eyeX + eyeW), eyeH, eyeW);
+          break;
+        case DIRECTION_UP:
+          ctx.fillStyle = "white";
+          ctx.fillRect(x + toothX, y, toothW, toothH);
+          ctx.fillRect(x + height - (toothX + toothW), y, toothW, toothH);
+          ctx.fillStyle = "red";
+          ctx.fillRect(
+            x + toothX + toothW,
+            y,
+            width - (toothX + toothW) * 2,
+            mouthH
+          );
+          ctx.fillStyle = "yellow";
+          ctx.fillRect(x + eyeX, y + eyeY, eyeW, eyeH);
+          ctx.fillRect(x + width - (eyeX + eyeW), y + eyeY, eyeW, eyeH);
+          break;
+        case DIRECTION_DOWN:
+          ctx.fillStyle = "white";
+          ctx.fillRect(x + toothX, y + height, toothW, -toothH);
+          ctx.fillRect(
+            x + width - (toothX + toothW),
+            y + height,
+            toothW,
+            -toothH
+          );
+          ctx.fillStyle = "red";
+          ctx.fillRect(
+            x + toothX + toothW,
+            y + height,
+            width - (toothX + toothW) * 2,
+            -mouthH
+          );
+          ctx.fillStyle = "yellow";
+          ctx.fillRect(x + eyeX, y + height - eyeY, eyeW, -eyeH);
+          ctx.fillRect(
+            x + width - (eyeX + eyeW),
+            y + height - eyeY,
+            eyeW,
+            -eyeH
+          );
+          break;
+      }
+    };
   }
 }

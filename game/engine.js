@@ -1,6 +1,7 @@
 import { sleep } from "./lib.js";
 
 export const TYPE_COLOR = "color";
+export const TYPE_FUNCTION = "function";
 
 export default class {
   constructor(game, context, config) {
@@ -15,9 +16,21 @@ export default class {
       const matrix = this.createMatrix();
       const isGameOver = this.update(matrix);
       this.draw(matrix);
-      await sleep(400);
       if (isGameOver) break;
+      await sleep(800);
     }
+
+    this.canvas.font = "96px vernada";
+    this.canvas.fillStyle = "black";
+
+    this.canvas.textAlign = "center";
+    this.canvas.textBaseline = "middle";
+
+    this.canvas.fillText(
+      "git gud",
+      this.config.canvas.width / 2,
+      this.config.canvas.height / 2
+    );
   }
 
   createMatrix() {
@@ -62,6 +75,14 @@ export default class {
                 blockHeight
               );
               break;
+            case TYPE_FUNCTION:
+              element.function(
+                this.canvas,
+                x * blockWidth,
+                y * blockHeight,
+                blockWidth,
+                blockHeight
+              );
           }
       }
   }

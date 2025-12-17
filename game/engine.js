@@ -5,39 +5,39 @@ export const TYPE_FUNCTION = "function";
 
 export default class {
   constructor(game, context, config) {
-    this.canvas = context.canvasContext;
-    this.score = context.scoreElement;
+    this.canvas = context.canvas;
+    this.canvasContext = context.canvas.getContext("2d");
+    this.score = context.score;
     this.config = config;
     this.game = game;
+
+    const start = () => {
+      this.canvas.removeEventListener("click", start);
+      this.run();
+    };
+
+    this.canvas.addEventListener("click", start);
+
+    this.drawText("click to play", true);
   }
 
   async run() {
     for (;;) {
       const matrix = this.createMatrix();
-      const isGameOver = this.update(matrix);
+      const { isGameOver, delay } = this.update(matrix);
       this.draw(matrix);
       if (isGameOver) break;
-      await sleep(800);
+      else await sleep(delay);
     }
 
-    this.canvas.font = "96px vernada";
-    this.canvas.fillStyle = "black";
-
-    this.canvas.textAlign = "center";
-    this.canvas.textBaseline = "middle";
-
-    this.canvas.fillText(
-      "git gud",
-      this.config.canvas.width / 2,
-      this.config.canvas.height / 2
-    );
+    this.drawText("git gud");
   }
 
   createMatrix() {
     const matrix = [];
-    for (let x = 0; x < this.config.field.width; x++) {
+    for (let x = 0; x < this.config.matrix.width; x++) {
       matrix[x] = [];
-      for (let y = 0; y < this.config.field.height; y++) {
+      for (let y = 0; y < this.config.matrix.height; y++) {
         matrix[x][y] = null;
       }
     }
@@ -51,15 +51,10 @@ export default class {
   }
 
   draw(matrix) {
-    const blockWidth = this.config.canvas.width / this.config.field.width;
-    const blockHeight = this.config.canvas.height / this.config.field.height;
+    const blockWidth = this.canvas.width / this.config.matrix.width;
+    const blockHeight = this.canvas.height / this.config.matrix.height;
 
-    this.canvas.clearRect(
-      0,
-      0,
-      this.config.canvas.width,
-      this.config.canvas.height
-    );
+    this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     for (let x = 0; x < matrix.length; x++)
       for (let y = 0; y < matrix[x].length; y++) {
@@ -67,8 +62,8 @@ export default class {
         if (element)
           switch (element.type) {
             case TYPE_COLOR:
-              this.canvas.fillStyle = element.color;
-              this.canvas.fillRect(
+              this.canvasContext.fillStyle = element.color;
+              this.canvasContext.fillRect(
                 x * blockWidth,
                 y * blockHeight,
                 blockWidth,
@@ -77,7 +72,7 @@ export default class {
               break;
             case TYPE_FUNCTION:
               element.function(
-                this.canvas,
+                this.canvasContext,
                 x * blockWidth,
                 y * blockHeight,
                 blockWidth,
@@ -85,5 +80,22 @@ export default class {
               );
           }
       }
+  }
+
+  drawText(text, clear) {
+    if (clear)
+      this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    this.canvasContext.font = "96px vernada";
+    this.canvasContext.fillStyle = "black";
+
+    this.canvasContext.textAlign = "center";
+    this.canvasContext.textBaseline = "middle";
+
+    this.canvasContext.fillText(
+      text,
+      this.canvas.width / 2,
+      this.canvas.height / 2
+    );
   }
 }

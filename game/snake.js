@@ -1,5 +1,8 @@
-import { floor } from "./lib.js";
 import { TYPE_COLOR, TYPE_FUNCTION } from "./engine.js";
+
+const floor = Math.floor;
+
+const MAX_DELAY = 800;
 
 const DIRECTION_UP = "up";
 const DIRECTION_DOWN = "down";
@@ -141,8 +144,10 @@ export default class {
 
   update(matrix, { setScore }) {
     const isGameOver = this.updateState(setScore);
+    const delayStep = MAX_DELAY / (this.width * this.height);
+    const delay = MAX_DELAY - this.score * delayStep;
     this.updateMatrix(matrix, setScore);
-    return isGameOver;
+    return { isGameOver, delay };
   }
 
   createApple() {

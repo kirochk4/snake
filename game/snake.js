@@ -1,6 +1,9 @@
 import { TYPE_COLOR, TYPE_FUNCTION } from "./engine.js";
 
 const floor = Math.floor;
+const abs = Math.abs;
+const sqrt = Math.sqrt;
+const random = Math.random;
 
 const MAX_DELAY = 800;
 
@@ -157,7 +160,7 @@ export default class {
           continue;
         else free.push({ x, y });
 
-    return free[floor(Math.random() * free.length)];
+    return free[floor(random() * free.length)];
   }
 
   get drawSnakeHeadFunction() {
@@ -293,15 +296,16 @@ class TouchController {
     HTMLElement.addEventListener("touchend", () => {
       const dir = this.checkSwipe();
       if (dir) set(dir);
-      this.startPos = null;
-      this.newPos = null;
+      this.startPos = this.newPos = null;
     });
   }
 
   checkSwipe() {
-    const absMove = Math.sqrt(
-      Math.abs(this.newPos.x - this.startPos.x) ** 2 +
-        Math.abs(this.newPos.y - this.startPos.y) ** 2
+    if (!this.newPos || !this.startPos) return;
+
+    const absMove = sqrt(
+      abs(this.newPos.x - this.startPos.x) ** 2 +
+        abs(this.newPos.y - this.startPos.y) ** 2
     );
 
     if (absMove < this.sensivity) return;
@@ -309,7 +313,7 @@ class TouchController {
     const dx = this.newPos.x - this.startPos.x;
     const dy = this.newPos.y - this.startPos.y;
 
-    if (Math.abs(dx) > Math.abs(dy)) {
+    if (abs(dx) > abs(dy)) {
       if (dx > 0) return DIRECTION_RIGHT;
       return DIRECTION_LEFT;
     } else {

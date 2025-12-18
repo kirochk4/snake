@@ -63,13 +63,11 @@ export default class {
     this.apple = this.createApple();
 
     document.addEventListener("keydown", this.directionListener);
-  }
 
-  get directionListener() {
-    return (event) => {
-      const key = event.key.toLowerCase();
-      if (directionKeys.has(key)) this.direction = directionKeys.get(key);
-    };
+    this.touchController = new TouchController(
+      document,
+      (direction) => (this.direction = direction)
+    );
   }
 
   updateState() {
@@ -163,7 +161,6 @@ export default class {
   }
 
   get drawSnakeHeadFunction() {
-    const direction = this.direction;
     return (ctx, x, y, width, height) => {
       ctx.fillStyle = "darkgreen";
       ctx.fillRect(x, y, width, height);
@@ -179,7 +176,7 @@ export default class {
       const eyeW = floor(width / 3);
       const eyeH = floor(height / 5);
 
-      switch (direction) {
+      switch (this.direction) {
         case DIRECTION_RIGHT:
           ctx.fillStyle = "white";
           ctx.fillRect(x + width, y + toothX, -toothH, toothW);
@@ -262,5 +259,62 @@ export default class {
           break;
       }
     };
+  }
+
+  get directionListener() {
+    return (event) => {
+      const key = event.key.toLowerCase();
+      if (directionKeys.has(key)) this.direction = directionKeys.get(key);
+    };
+  }
+}
+
+class TouchController {
+  startPos = null;
+  newPos = null;
+
+  constructor(HTMLElement, set, sensivity = 20) {
+    this.sensivity = sensivity;
+
+    HTMLElement.addEventListener("touchstart", (event) => {
+      this.startPos = {
+        x: event.changedTouches[0].clientX,
+        y: event.changedTouches[0].clientY,
+      };
+    });
+
+    HTMLElement.addEventListener("touchmove", (event) => {
+      this.newPos = {
+        x: event.changedTouches[0].clientX,
+        y: event.changedTouches[0].clientY,
+      };
+    });
+
+    HTMLElement.addEventListener("touchend", () => {
+      const dir = this.checkSwipe();
+      if (dir) set(dir);
+      this.startPos = null;
+      this.newPos = null;
+    });
+  }
+
+  checkSwipe() {
+    const absMove = Math.sqrt(
+      Math.abs(this.newPos.x - this.startPos.x) ** 2 +
+        Math.abs(this.newPos.y - this.startPos.y) ** 2
+    );
+
+    if (absMove < this.sensivity) return;
+
+    const dx = this.newPos.x - this.startPos.x;
+    const dy = this.newPos.y - this.startPos.y;
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+      if (dx > 0) return DIRECTION_RIGHT;
+      return DIRECTION_LEFT;
+    } else {
+      if (dy > 0) return DIRECTION_DOWN;
+      return DIRECTION_UP;
+    }
   }
 }

@@ -25,7 +25,7 @@ export default class {
     for (;;) {
       const matrix = this.createMatrix();
       const { isGameOver, delay } = this.update(matrix);
-      this.draw(matrix);
+      this.drawMatrix(matrix);
       if (isGameOver) break;
       else await sleep(delay);
     }
@@ -50,7 +50,7 @@ export default class {
     return this.game.update(matrix, { setScore });
   }
 
-  draw(matrix) {
+  drawMatrix(matrix) {
     const blockWidth = this.canvas.width / this.config.matrix.width;
     const blockHeight = this.canvas.height / this.config.matrix.height;
 
@@ -86,7 +86,8 @@ export default class {
     if (clear)
       this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    this.canvasContext.font = "96px vernada";
+    const fontSize = this.canvas.width / 6;
+    this.canvasContext.font = `${fontSize}px vernada`;
     this.canvasContext.fillStyle = "black";
 
     this.canvasContext.textAlign = "center";
